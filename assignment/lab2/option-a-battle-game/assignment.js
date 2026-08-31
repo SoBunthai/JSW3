@@ -1,10 +1,11 @@
 /* ================================================================
    JavaScript — Week 3 — Lab 2 (Option A) · Battle Game
    ----------------------------------------------------------------
-   Fight 5 enemies in a row, easiest to hardest, with random damage
-   each hit. Watch the fight play out turn by turn — the result
-   (win/lose) only shows once the fight is over, then you're asked
-   to play again.
+   Fight 5 enemies in a row, easiest to hardest. They hit harder as
+   you go, and every hit (yours and theirs) can land a CRITICAL —
+   double damage — so there's a real chance you lose. Watch the
+   fight play out turn by turn — the result (win/lose) only shows
+   once the fight is over, then you're asked to play again.
 
    Uses: OBJECT (player/enemy), ARRAY (`enemies`), FUNCTION
    (`attack`, `battle`, `runBattles`), CALLBACK (`onHit` and
@@ -21,10 +22,10 @@
 /* ---- PROVIDED: DOM refs, rendering, prompts, playback, retry —
    do not edit ------------------------------------------------------- */
 const playerNameEl = document.getElementById("player-name");
-const playerMetaEl = document.getElementById("player-meta");
 const playerHpFillEl = document.getElementById("player-hp-fill");
 const playerHpTextEl = document.getElementById("player-hp-text");
 
+const enemyEmojiEl = document.getElementById("enemy-emoji");
 const enemyNameEl = document.getElementById("enemy-name");
 const enemyHpFillEl = document.getElementById("enemy-hp-fill");
 const enemyHpTextEl = document.getElementById("enemy-hp-text");
@@ -33,11 +34,11 @@ const statusEl = document.getElementById("status");
 const logEl = document.getElementById("message-log");
 
 const ENEMY_TEMPLATE = [
-    { name: "Slime",  hp: 20,  attack: 4 },
-    { name: "Goblin", hp: 40,  attack: 7 },
-    { name: "Wolf",   hp: 60,  attack: 10 },
-    { name: "Orc",    hp: 80,  attack: 14 },
-    { name: "Dragon", hp: 100, attack: 20 },
+    { name: "Slime",  emoji: "🟢", hp: 20,  attack: 4 },
+    { name: "Goblin", emoji: "👹", hp: 40,  attack: 7 },
+    { name: "Wolf",   emoji: "🐺", hp: 60,  attack: 10 },
+    { name: "Orc",    emoji: "🧌", hp: 80,  attack: 14 },
+    { name: "Dragon", emoji: "🐉", hp: 100, attack: 20 },
 ];
 
 const TURN_DELAY_MS = 600;
@@ -59,21 +60,26 @@ function logMessage(text) {
     logEl.append(li);
 }
 
+/* makePlayer — returns null if the player hits Cancel on the name
+   prompt, so startRun() below knows to stop instead of starting a
+   fight with a fake default name. */
 function makePlayer() {
-    const name = prompt("Enter your hero's name:") || "Hero";
-    const genderInput = (prompt("Gender? Type M or F:") || "").trim().toUpperCase();
-    const gender = genderInput === "F" ? "Female" : "Male";
-    return { name, gender, hp: 170, maxHp: 170, attack: 20 };
+    const name = prompt("Enter your hero's name:");
+    if (name === null) {
+        return null;
+    }
+    return { name, hp: 190, maxHp: 190, attack: 20 };
 }
 
 function makeEnemies() {
-    return ENEMY_TEMPLATE.map((e) => ({ name: e.name, hp: e.hp, maxHp: e.hp, attack: e.attack }));
+    return ENEMY_TEMPLATE.map((e) => (
+        { name: e.name, emoji: e.emoji, hp: e.hp, maxHp: e.hp, attack: e.attack }
+    ));
 }
 
 function renderPlayer(player) {
     currentPlayer = player;
     playerNameEl.textContent = player.name;
-    playerMetaEl.textContent = player.gender;
     updateHpBar(playerHpFillEl, playerHpTextEl, player.hp, player.maxHp);
 }
 
@@ -82,13 +88,17 @@ function renderPlayer(player) {
    does inside (same idea as onHit). Right now it just RECORDS the
    event — see playBattleLog below for why. */
 function announceEnemy(enemy) {
-    battleLog.push({ type: "enemy", enemy: { name: enemy.name, hp: enemy.hp, maxHp: enemy.maxHp } });
+    battleLog.push({
+        type: "enemy",
+        enemy: { name: enemy.name, emoji: enemy.emoji, hp: enemy.hp, maxHp: enemy.maxHp },
+    });
 }
 
 /* onHit — this is the CALLBACK you pass into attack(). Like
-   announceEnemy, it just RECORDS the hit for now. */
-function onHit(attackerName, defenderName, damage, defenderHpLeft) {
-    battleLog.push({ type: "hit", attackerName, defenderName, damage, defenderHpLeft });
+   announceEnemy, it just RECORDS the hit for now. `wasCrit` just
+   controls whether the log message gets a "CRITICAL!" tag. */
+function onHit(attackerName, defenderName, damage, defenderHpLeft, wasCrit) {
+    battleLog.push({ type: "hit", attackerName, defenderName, damage, defenderHpLeft, wasCrit });
 }
 
 /* Your functions below run instantly (that's how JS normally
@@ -109,11 +119,14 @@ function playBattleLog(log, onFinished) {
 
         if (event.type === "enemy") {
             currentEnemy = event.enemy;
+            enemyEmojiEl.textContent = event.enemy.emoji;
             enemyNameEl.textContent = event.enemy.name;
             updateHpBar(enemyHpFillEl, enemyHpTextEl, event.enemy.hp, event.enemy.maxHp);
-            logMessage("A wild " + event.enemy.name + " appears!");
+            logMessage("A wild " + event.enemy.emoji + " " + event.enemy.name + " appears!");
         } else {
-            logMessage(event.attackerName + " hits " + event.defenderName + " for " + event.damage + " dmg.");
+            const critTag = event.wasCrit ? " CRITICAL HIT!" : "";
+            logMessage(event.attackerName + " hits " + event.defenderName + " for " +
+                event.damage + " dmg." + critTag);
             if (currentPlayer && event.defenderName === currentPlayer.name) {
                 updateHpBar(playerHpFillEl, playerHpTextEl, event.defenderHpLeft, currentPlayer.maxHp);
             } else if (currentEnemy) {
@@ -130,11 +143,25 @@ function playBattleLog(log, onFinished) {
 
 /* =================================================================
    YOUR CODE — Part A: attack(attacker, defender, onHit)
-     - roll random damage: attacker.attack, plus a random swing
-       from -2 to +2
-       Hint: const damage = attacker.attack + Math.floor(Math.random() * 5) - 2;
-     - defender.hp -= damage (not below 0)
-     - call onHit(attacker.name, defender.name, damage, defender.hp)
+
+   Step 1 — roll a base damage number, close to attacker.attack:
+     const baseDamage = attacker.attack + Math.floor(Math.random() * 5) - 2;
+     (Math.random() gives 0-0.99..., so this line gives attacker.attack
+     minus 2, minus 1, plus 0, plus 1, or plus 2 — 5 equally likely
+     outcomes.)
+
+   Step 2 — 25% chance of a CRITICAL HIT that doubles the damage:
+     const isCrit = Math.random() < 0.25;
+     let damage = isCrit ? baseDamage * 2 : baseDamage;
+     (Math.random() < 0.25 is true about 1 time in 4 — that's the
+     "25% chance" part.)
+
+   Step 3 — apply it:
+     defender.hp -= damage; (not below 0 — if it goes negative, set
+     it to 0)
+
+   Step 4 — report it:
+     onHit(attacker.name, defender.name, damage, defender.hp, isCrit)
    ================================================================= */
 function attack(attacker, defender, onHit) {
 
@@ -172,6 +199,10 @@ function runBattles(player, enemies, onNewEnemy) {
 /* ---- PROVIDED: run one battle, then replay + retry — do not edit -- */
 function startRun() {
     const player = makePlayer();
+    if (player === null) {
+        statusEl.textContent = "Battle cancelled.";
+        return;
+    }
     const enemies = makeEnemies();
 
     battleLog = [];

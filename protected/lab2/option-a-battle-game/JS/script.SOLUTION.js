@@ -4,10 +4,10 @@
 "use strict";
 
 const playerNameEl = document.getElementById("player-name");
-const playerMetaEl = document.getElementById("player-meta");
 const playerHpFillEl = document.getElementById("player-hp-fill");
 const playerHpTextEl = document.getElementById("player-hp-text");
 
+const enemyEmojiEl = document.getElementById("enemy-emoji");
 const enemyNameEl = document.getElementById("enemy-name");
 const enemyHpFillEl = document.getElementById("enemy-hp-fill");
 const enemyHpTextEl = document.getElementById("enemy-hp-text");
@@ -16,11 +16,11 @@ const statusEl = document.getElementById("status");
 const logEl = document.getElementById("message-log");
 
 const ENEMY_TEMPLATE = [
-    { name: "Slime",  hp: 20,  attack: 4 },
-    { name: "Goblin", hp: 40,  attack: 7 },
-    { name: "Wolf",   hp: 60,  attack: 10 },
-    { name: "Orc",    hp: 80,  attack: 14 },
-    { name: "Dragon", hp: 100, attack: 20 },
+    { name: "Slime",  emoji: "🟢", hp: 20,  attack: 4 },
+    { name: "Goblin", emoji: "👹", hp: 40,  attack: 7 },
+    { name: "Wolf",   emoji: "🐺", hp: 60,  attack: 10 },
+    { name: "Orc",    emoji: "🧌", hp: 80,  attack: 14 },
+    { name: "Dragon", emoji: "🐉", hp: 100, attack: 20 },
 ];
 
 const TURN_DELAY_MS = 600;
@@ -43,29 +43,34 @@ function logMessage(text) {
 }
 
 function makePlayer() {
-    const name = prompt("Enter your hero's name:") || "Hero";
-    const genderInput = (prompt("Gender? Type M or F:") || "").trim().toUpperCase();
-    const gender = genderInput === "F" ? "Female" : "Male";
-    return { name, gender, hp: 170, maxHp: 170, attack: 20 };
+    const name = prompt("Enter your hero's name:");
+    if (name === null) {
+        return null;
+    }
+    return { name, hp: 190, maxHp: 190, attack: 20 };
 }
 
 function makeEnemies() {
-    return ENEMY_TEMPLATE.map((e) => ({ name: e.name, hp: e.hp, maxHp: e.hp, attack: e.attack }));
+    return ENEMY_TEMPLATE.map((e) => (
+        { name: e.name, emoji: e.emoji, hp: e.hp, maxHp: e.hp, attack: e.attack }
+    ));
 }
 
 function renderPlayer(player) {
     currentPlayer = player;
     playerNameEl.textContent = player.name;
-    playerMetaEl.textContent = player.gender;
     updateHpBar(playerHpFillEl, playerHpTextEl, player.hp, player.maxHp);
 }
 
 function announceEnemy(enemy) {
-    battleLog.push({ type: "enemy", enemy: { name: enemy.name, hp: enemy.hp, maxHp: enemy.maxHp } });
+    battleLog.push({
+        type: "enemy",
+        enemy: { name: enemy.name, emoji: enemy.emoji, hp: enemy.hp, maxHp: enemy.maxHp },
+    });
 }
 
-function onHit(attackerName, defenderName, damage, defenderHpLeft) {
-    battleLog.push({ type: "hit", attackerName, defenderName, damage, defenderHpLeft });
+function onHit(attackerName, defenderName, damage, defenderHpLeft, wasCrit) {
+    battleLog.push({ type: "hit", attackerName, defenderName, damage, defenderHpLeft, wasCrit });
 }
 
 function playBattleLog(log, onFinished) {
@@ -80,11 +85,14 @@ function playBattleLog(log, onFinished) {
 
         if (event.type === "enemy") {
             currentEnemy = event.enemy;
+            enemyEmojiEl.textContent = event.enemy.emoji;
             enemyNameEl.textContent = event.enemy.name;
             updateHpBar(enemyHpFillEl, enemyHpTextEl, event.enemy.hp, event.enemy.maxHp);
-            logMessage("A wild " + event.enemy.name + " appears!");
+            logMessage("A wild " + event.enemy.emoji + " " + event.enemy.name + " appears!");
         } else {
-            logMessage(event.attackerName + " hits " + event.defenderName + " for " + event.damage + " dmg.");
+            const critTag = event.wasCrit ? " CRITICAL HIT!" : "";
+            logMessage(event.attackerName + " hits " + event.defenderName + " for " +
+                event.damage + " dmg." + critTag);
             if (currentPlayer && event.defenderName === currentPlayer.name) {
                 updateHpBar(playerHpFillEl, playerHpTextEl, event.defenderHpLeft, currentPlayer.maxHp);
             } else if (currentEnemy) {
@@ -99,12 +107,16 @@ function playBattleLog(log, onFinished) {
 
 /* ---- YOUR CODE (answer) — Part A ----------------------------------- */
 function attack(attacker, defender, onHit) {
-    const damage = attacker.attack + Math.floor(Math.random() * 5) - 2;
+    const baseDamage = attacker.attack + Math.floor(Math.random() * 5) - 2;
+    const isCrit = Math.random() < 0.25;
+    let damage = isCrit ? baseDamage * 2 : baseDamage;
+
     defender.hp -= damage;
     if (defender.hp < 0) {
         defender.hp = 0;
     }
-    onHit(attacker.name, defender.name, damage, defender.hp);
+
+    onHit(attacker.name, defender.name, damage, defender.hp, isCrit);
 }
 
 /* ---- YOUR CODE (answer) — Part B ------------------------------------ */
@@ -132,6 +144,10 @@ function runBattles(player, enemies, onNewEnemy) {
 /* ---- PROVIDED: run one battle, then replay + retry ------------------ */
 function startRun() {
     const player = makePlayer();
+    if (player === null) {
+        statusEl.textContent = "Battle cancelled.";
+        return;
+    }
     const enemies = makeEnemies();
 
     battleLog = [];

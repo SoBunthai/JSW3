@@ -33,7 +33,7 @@ const statusEl = document.getElementById("quiz-status");
 const logEl = document.getElementById("quiz-log");
 
 function promptName() {
-    return prompt("What's your name?") || "Player";
+    return prompt("What's your name?");
 }
 
 function showQuestion(question, index, total) {
@@ -58,6 +58,12 @@ function updateScoreDisplay(score, total) {
     statusEl.textContent = "Score: " + score + " / " + total;
 }
 
+function showFinalResult(playerName, score, total) {
+    progressEl.textContent = "Quiz complete!";
+    questionEl.textContent = playerName + ", you scored " + score + " / " + total + "!";
+    choicesEl.innerHTML = "";
+}
+
 /* ---- YOUR CODE (answer) — Part A ------------------------------------ */
 function checkAnswer(question, userAnswer) {
     const cleaned = (userAnswer || "").trim().toUpperCase();
@@ -70,7 +76,10 @@ function runQuiz(questions, playerName, onQuestion, onAnswered) {
 
     questions.forEach((question, index) => {
         onQuestion(question, index + 1, questions.length);
-        const userAnswer = prompt(playerName + ", your answer (A/B/C):");
+        const userAnswer = prompt(
+            question.question + "\n" + question.choices.join("\n") +
+            "\nYour answer (A/B/C):"
+        );
         const isCorrect = checkAnswer(question, userAnswer);
 
         if (isCorrect) {
@@ -85,17 +94,24 @@ function runQuiz(questions, playerName, onQuestion, onAnswered) {
 
 /* ---- PROVIDED: retry loop -------------------------------------------- */
 let playAgain = true;
+let cancelled = false;
 
 while (playAgain) {
     const playerName = promptName();
+    if (playerName === null) {
+        cancelled = true;
+        break;
+    }
+
     logEl.innerHTML = "";
     updateScoreDisplay(0, questions.length);
 
     const score = runQuiz(questions, playerName, showQuestion, handleAnswered);
+    showFinalResult(playerName, score, questions.length);
 
     playAgain = confirm(
         playerName + ", you scored " + score + " / " + questions.length + ". Play again?"
     );
 }
 
-statusEl.textContent = "Thanks for playing!";
+statusEl.textContent = cancelled ? "Quiz cancelled." : "Thanks for playing!";

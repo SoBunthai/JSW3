@@ -27,6 +27,17 @@ body {
     font-size: 18px;
 }
 
+.hero-icon {
+    display: block;
+    margin: 0 auto 4px;
+}
+
+.enemy-emoji {
+    font-size: 48px;
+    line-height: 1;
+    margin-bottom: 4px;
+}
+
 .fighter-card p {
     margin: 4px 0;
     font-size: 12px;
