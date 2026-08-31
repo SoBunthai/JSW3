@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Game — Week 3 · Lab 2 (Option A)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Battle Game</h1>
+    <p>
+        Pick <strong>ONE</strong> of the two Lab 2 projects to complete.
+        This is <strong>Option A: Battle Game</strong>.
+        (Option B — Quiz App — lives in <code>../option-b-quiz-app/</code>.)
+    </p>
+    <p>
+        You only write the FUNCTIONS — the HP bars and messages below are
+        already wired up for you (that's a sneak peek at Week 4's DOM).
+        Watch the fight play out turn by turn before the result shows.
+        Open with Live Server, press F12 for the console.
+    </p>
+
+    <div id="arena">
+        <div class="fighter-card" id="player-card">
+            <h2 id="player-name">—</h2>
+            <p id="player-meta"></p>
+            <div class="hp-bar"><div id="player-hp-fill" class="hp-fill"></div></div>
+            <p id="player-hp-text">— / —</p>
+        </div>
+        <div class="vs">VS</div>
+        <div class="fighter-card" id="enemy-card">
+            <h2 id="enemy-name">—</h2>
+            <p>&nbsp;</p>
+            <div class="hp-bar"><div id="enemy-hp-fill" class="hp-fill enemy"></div></div>
+            <p id="enemy-hp-text">— / —</p>
+        </div>
+    </div>
+
+    <p id="status">Loading...</p>
+    <ul id="message-log"></ul>
+
+    <!-- YOUR WORK: complete the TODOs in assignment.js -->
+    <script src="assignment.js"></script>
+</body>
+</html>

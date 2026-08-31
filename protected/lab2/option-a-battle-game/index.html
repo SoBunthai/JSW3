@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<!-- Instructor page — same idea as the trainee index.html, but loads the
+     answer key. -->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battle Game — SOLUTION</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Battle Game — SOLUTION</h1>
+    <p>Instructor copy. Loads JS/script.SOLUTION.js.</p>
+
+    <div id="arena">
+        <div class="fighter-card" id="player-card">
+            <h2 id="player-name">—</h2>
+            <p id="player-meta"></p>
+            <div class="hp-bar"><div id="player-hp-fill" class="hp-fill"></div></div>
+            <p id="player-hp-text">— / —</p>
+        </div>
+        <div class="vs">VS</div>
+        <div class="fighter-card" id="enemy-card">
+            <h2 id="enemy-name">—</h2>
+            <p>&nbsp;</p>
+            <div class="hp-bar"><div id="enemy-hp-fill" class="hp-fill enemy"></div></div>
+            <p id="enemy-hp-text">— / —</p>
+        </div>
+    </div>
+
+    <p id="status">Loading...</p>
+    <ul id="message-log"></ul>
+
+    <script src="JS/script.SOLUTION.js"></script>
+</body>
+</html>

@@ -1,0 +1,79 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    max-width: 480px;
+    margin: 40px auto;
+    padding: 0 16px;
+    text-align: center;
+}
+
+#arena {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.fighter-card {
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px;
+    width: 170px;
+}
+
+.fighter-card h2 {
+    margin: 0 0 4px;
+    font-size: 18px;
+}
+
+.fighter-card p {
+    margin: 4px 0;
+    font-size: 12px;
+    color: #666;
+}
+
+.vs {
+    font-weight: bold;
+    color: #a0aec0;
+}
+
+.hp-bar {
+    background: #e2e8f0;
+    border-radius: 999px;
+    height: 12px;
+    overflow: hidden;
+    margin-top: 8px;
+}
+
+.hp-fill {
+    height: 100%;
+    width: 100%;
+    background: #38a169;
+    transition: width 0.2s ease;
+}
+
+.hp-fill.enemy {
+    background: #e53e3e;
+}
+
+#status {
+    font-weight: bold;
+    margin: 12px 0;
+}
+
+#message-log {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    text-align: left;
+    max-height: 200px;
+    overflow-y: auto;
+    border-top: 1px solid #e2e8f0;
+    font-size: 13px;
+}
+
+#message-log li {
+    padding: 4px 0;
+    border-bottom: 1px dashed #eee;
+}
