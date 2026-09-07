@@ -34,11 +34,11 @@ const statusEl = document.getElementById("status");
 const logEl = document.getElementById("message-log");
 
 const ENEMY_TEMPLATE = [
-    { name: "Slime",  emoji: "🟢", hp: 20,  attack: 4 },
-    { name: "Goblin", emoji: "👹", hp: 40,  attack: 7 },
-    { name: "Wolf",   emoji: "🐺", hp: 60,  attack: 10 },
-    { name: "Orc",    emoji: "🧌", hp: 80,  attack: 14 },
-    { name: "Dragon", emoji: "🐉", hp: 100, attack: 20 },
+    { name: "Alien",  emoji: "👽", hp: 30,  attack: 6 },
+    { name: "Robot", emoji: "🤖", hp: 40,  attack: 7 },
+    { name: "Vampire",   emoji: "🧛", hp: 69,  attack: 10 },
+    { name: "Yuzhong",    emoji: "🐉", hp: 80,  attack: 14 },
+    { name: "Superman", emoji: "🦸", hp: 100, attack: 20 },
 ];
 
 const TURN_DELAY_MS = 600;
@@ -68,7 +68,7 @@ function makePlayer() {
     if (name === null) {
         return null;
     }
-    return { name, hp: 190, maxHp: 190, attack: 20 };
+    return { name, hp: 168, maxHp: 168, attack: 20 };
 }
 
 function makeEnemies() {
@@ -164,8 +164,14 @@ function playBattleLog(log, onFinished) {
      onHit(attacker.name, defender.name, damage, defender.hp, isCrit)
    ================================================================= */
 function attack(attacker, defender, onHit) {
-
+    const baseDamage = attacker.attack + Math.floor(Math.random() * 5) - 2;
+    const isCrit = Math.random() < 0.25;
+    let damage = isCrit ? baseDamage * 2 : baseDamage;
+    defender.hp -= damage;
+    if (defender.hp < 0) defender.hp = 0;
+    onHit(attacker.name, defender.name, damage, defender.hp, isCrit);
 }
+
 
 
 /* =================================================================
@@ -178,7 +184,13 @@ function attack(attacker, defender, onHit) {
      just pass it straight through into attack().
    ================================================================= */
 function battle(player, enemy) {
-
+    while (player.hp > 0 && enemy.hp > 0) {
+        attack(player, enemy, onHit);
+        if (enemy.hp > 0) {
+            attack(enemy, player, onHit);
+        }
+    }
+    return player.hp > 0;
 }
 
 
@@ -192,7 +204,13 @@ function battle(player, enemy) {
      — call it once per enemy, right before you battle() it.
    ================================================================= */
 function runBattles(player, enemies, onNewEnemy) {
-
+ for (let i = 0; i < enemies.length; i++) {
+        onNewEnemy(enemies[i]);
+        if (!battle(player, enemies[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 
